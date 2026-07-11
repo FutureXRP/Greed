@@ -17,13 +17,15 @@ export interface ShopItem {
   effect: string;
 }
 
+// Entry items (Peek/Burn/Insurance) are priced low so the first cleared level
+// can afford a power-up; the swingier items stay pricier.
 export const SHOP_ITEMS: Record<ShopItemId, ShopItem> = {
-  peek: { id: 'peek', name: 'Peek', cost: 3, effect: 'See the next 2 letters before deciding.' },
-  burn: { id: 'burn', name: 'Burn', cost: 5, effect: 'Discard one rack tile mid-draft; the slot reopens.' },
-  eighthSlot: { id: 'eighthSlot', name: 'Eighth Slot', cost: 8, effect: 'Rack size 8 for the next hand only.' },
-  markedCard: { id: 'markedCard', name: 'Marked Card', cost: 6, effect: 'A chosen letter glows if it appears in the next 5 stream letters.' },
-  insurance: { id: 'insurance', name: 'Insurance', cost: 4, effect: "Your next bust doesn't count. Consumed on use." },
-  loadedDie: { id: 'loadedDie', name: 'Loaded Die', cost: 10, effect: 'Reroll the entire stream once mid-draft, keeping your rack.' },
+  peek: { id: 'peek', name: 'Peek', cost: 2, effect: 'See the next 2 letters before deciding.' },
+  burn: { id: 'burn', name: 'Burn', cost: 4, effect: 'Discard one rack tile mid-draft; the slot reopens.' },
+  eighthSlot: { id: 'eighthSlot', name: 'Eighth Slot', cost: 7, effect: 'Rack size 8 for the next hand only.' },
+  markedCard: { id: 'markedCard', name: 'Marked Card', cost: 5, effect: 'A chosen letter glows if it appears in the next 5 stream letters.' },
+  insurance: { id: 'insurance', name: 'Insurance', cost: 3, effect: "Your next bust doesn't count. Consumed on use." },
+  loadedDie: { id: 'loadedDie', name: 'Loaded Die', cost: 9, effect: 'Reroll the entire stream once mid-draft, keeping your rack.' },
 };
 
 const ALL: ShopItemId[] = Object.keys(SHOP_ITEMS) as ShopItemId[];
@@ -51,4 +53,9 @@ export interface Inventory {
 
 export function emptyInventory(): Inventory {
   return { peek: 0, burn: 0, eighthSlot: 0, markedCard: 0, insurance: 0, loadedDie: 0 };
+}
+
+/** Build a starting inventory from a partial (difficulty's free items). */
+export function makeInventory(seed: Partial<Inventory> = {}): Inventory {
+  return { ...emptyInventory(), ...seed };
 }

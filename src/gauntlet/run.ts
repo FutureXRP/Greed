@@ -9,8 +9,9 @@ import { generateStream, GenerateOptions } from '../engine/generate';
 import { Dictionary } from '../engine/dictionary';
 import { ScoreConfig } from '../engine/score';
 import { GameConfig } from '../engine/types';
-import { targetFor } from './targets';
+import { levelTarget } from './targets';
 import { drawModifier, Modifier } from './modifiers';
+import { DifficultyConfig } from './difficulty';
 import { TUNING } from '../config/tuning';
 
 export type RunMode = 'gauntlet' | 'endless';
@@ -43,20 +44,21 @@ export function setupLevel(args: {
   level: number;
   runSeed: string;
   dict: Dictionary;
+  difficulty: DifficultyConfig;
   prevBrutal: boolean;
   eighthSlot: boolean;
 }): LevelSetup {
-  const { mode, level, runSeed, dict, prevBrutal, eighthSlot } = args;
+  const { mode, level, runSeed, dict, difficulty, prevBrutal, eighthSlot } = args;
 
   let modifier: Modifier | null = null;
-  if (level >= TUNING.gauntlet.modifierStartLevel) {
+  if (level >= difficulty.modifierStartLevel) {
     const fullPool = mode === 'endless' && level >= TUNING.endless.fullModifierLevel;
     modifier = drawModifier(level, makeRng(`${runSeed}-mod-${level}`), prevBrutal, fullPool);
   }
 
   const streamLen = modifier?.streamLen ?? TUNING.geometry.streamLen;
-  const targetMult = modifier?.targetMult ?? 1;
-  const target = Math.round(targetFor(mode, level) * targetMult);
+  const modTargetMult = modifier?.targetMult ?? 1;
+  const target = Math.round(levelTarget(level, difficulty) * modTargetMult);
   const rackSize = eighthSlot ? 8 : TUNING.geometry.rackSize;
 
   const cursedIndex = modifier?.curse
