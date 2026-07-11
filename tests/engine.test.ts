@@ -9,6 +9,7 @@ import { fatesToGrid, dailyShareText } from '../src/game/share';
 import { chooseEpitaph } from '../src/game/epitaphs';
 import { baseTarget, levelTarget, coinFromSurplus } from '../src/gauntlet/targets';
 import { DIFFICULTIES } from '../src/gauntlet/difficulty';
+import { classifyWord } from '../src/engine/coinage';
 
 // A small dictionary is enough for most engine tests.
 const MINI = buildDictionary(
@@ -246,6 +247,50 @@ describe('epitaphs', () => {
       word: 'QUITS', heldBestWord: 'SEQUIN', passedLetters: [], pick: 0,
     });
     expect(line).toContain('SEQUIN');
+  });
+});
+
+describe('coinage engine', () => {
+  // Controlled mini-dictionary so each rule is tested in isolation.
+  const dict = buildDictionary(['TOSS', 'HOPE', 'STOP', 'HAPPY', 'CAT', 'GLOW', 'EVE', 'REST', 'BERRY'].join('\n'));
+
+  test('dictionary words classify as word', () => {
+    expect(classifyWord('TOSS', dict)).toBe('word');
+  });
+
+  test('combining forms play standalone (HELICO by rule, not by hand)', () => {
+    expect(classifyWord('HELICO', dict)).toBe('coinage');
+    expect(classifyWord('CRYO', dict)).toBe('coinage');
+    expect(classifyWord('XENO', dict)).toBe('coinage');
+  });
+
+  test('prefixed roots are accepted', () => {
+    expect(classifyWord('RETOSS', dict)).toBe('coinage');
+    expect(classifyWord('UNHAPPY', dict)).toBe('coinage');
+    expect(classifyWord('MISHOPE', dict)).toBe('coinage');
+  });
+
+  test('suffixed roots with orthographic repair', () => {
+    expect(classifyWord('HOPING', dict)).toBe('coinage'); // e-restoration
+    expect(classifyWord('STOPPED', dict)).toBe('coinage'); // undoubling
+    expect(classifyWord('HAPPIER', dict)).toBe('coinage'); // I→Y
+    expect(classifyWord('BERRIES', dict)).toBe('coinage'); // IES→Y
+    expect(classifyWord('GLOWY', dict)).toBe('coinage'); // playful -Y
+    expect(classifyWord('CATTISH', dict)).toBe('coinage'); // -ISH with doubling
+  });
+
+  test('prefix + suffix combine', () => {
+    expect(classifyWord('RETOSSY', dict)).toBe('coinage');
+  });
+
+  test('no free compounding — EVEREST stays out even with EVE and REST known', () => {
+    expect(classifyWord('EVEREST', dict)).toBeNull();
+  });
+
+  test('proper names and gibberish are rejected', () => {
+    expect(classifyWord('LONDON', dict)).toBeNull();
+    expect(classifyWord('DENALI', dict)).toBeNull();
+    expect(classifyWord('ZZQJ', dict)).toBeNull();
   });
 });
 

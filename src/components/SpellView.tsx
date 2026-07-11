@@ -5,7 +5,7 @@ import { RackRow } from './RackRow';
 import { COLORS, FONTS, SPACE } from '../theme';
 import { GameState } from '../engine/types';
 import { Dictionary } from '../engine/dictionary';
-import { isValidPlay } from '../engine/solver';
+import { classifyPlay } from '../engine/solver';
 import { rackLetters } from '../engine/gameMachine';
 import { wordScore, ScoreConfig } from '../engine/score';
 
@@ -33,7 +33,8 @@ export function SpellView({
   const word = state.spelled.map((i) => state.rack[i]?.letter ?? '').join('');
   const rack = rackLetters(state);
 
-  const valid = useMemo(() => (word.length >= 3 ? isValidPlay(word, rack, dict) : false), [word, rack, dict]);
+  const kind = useMemo(() => (word.length >= 3 ? classifyPlay(word, rack, dict) : null), [word, rack, dict]);
+  const valid = kind != null;
   const preview = valid ? wordScore(word, cfg) : 0;
 
   return (
@@ -49,7 +50,10 @@ export function SpellView({
         <View style={styles.scoreTag}>
           {word.length >= 3 ? (
             valid ? (
-              <Mono style={styles.previewScore}>+{preview}</Mono>
+              <Mono style={styles.previewScore}>
+                +{preview}
+                {kind === 'coinage' ? <UIText style={styles.coinage}>  · a coinage — the house allows it</UIText> : null}
+              </Mono>
             ) : (
               <UIText style={styles.invalid}>not a word</UIText>
             )
@@ -92,6 +96,7 @@ const styles = StyleSheet.create({
   wordPending: { color: COLORS.bone },
   scoreTag: { height: 20 },
   previewScore: { color: COLORS.win, fontSize: 15, fontWeight: '700' },
+  coinage: { color: COLORS.goldHi, fontSize: 11, fontStyle: 'italic' },
   invalid: { color: COLORS.muted, fontSize: 13 },
   editRow: { flexDirection: 'row', gap: SPACE.sm, justifyContent: 'center' },
   editBtn: { minWidth: 90 },

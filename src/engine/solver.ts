@@ -6,6 +6,7 @@
 
 import { Dictionary, letterCounts } from './dictionary';
 import { wordScore, ScoreConfig } from './score';
+import { classifyWord, WordKind } from './coinage';
 
 export interface SolveResult {
   word: string | null;
@@ -39,10 +40,20 @@ export function bestWord(pool: string[], dict: Dictionary, cfg: ScoreConfig = {}
   return { word: best, score: best ? bestScore : 0 };
 }
 
-/** Is `word` both in the dictionary and formable from `pool`? */
-export function isValidPlay(word: string, pool: string[], dict: Dictionary): boolean {
+/**
+ * Classify a play: 'word' (dictionary), 'coinage' (rule-formed — see
+ * coinage.ts), or null if invalid or not formable from `pool`.
+ * The god-line solver above stays strict-dictionary on purpose: coinages
+ * widen what the player may play, never the theoretical maximum.
+ */
+export function classifyPlay(word: string, pool: string[], dict: Dictionary): WordKind | null {
   const w = word.toUpperCase();
-  if (w.length < 3 || w.length > 7) return false;
-  if (!dict.has(w)) return false;
-  return formable(letterCounts(w), letterCounts(pool));
+  const kind = classifyWord(w, dict);
+  if (!kind) return null;
+  return formable(letterCounts(w), letterCounts(pool)) ? kind : null;
+}
+
+/** Is `word` an accepted play (dictionary word or coinage) formable from `pool`? */
+export function isValidPlay(word: string, pool: string[], dict: Dictionary): boolean {
+  return classifyPlay(word, pool, dict) != null;
 }
