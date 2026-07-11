@@ -78,6 +78,8 @@ to validate submissions, so wiring the backend later is additive.
 index.ts                 # Expo entry (registerRootComponent)
 App.tsx                  # dictionary-load gate, nav stack, providers
 assets/words37.txt       # YAWL ∪ ENABLE, 3–7 letters (~72k words, no proper nouns)
+                         # + Coinage Engine (src/engine/coinage.ts): rule-formed
+                         #   coinages accepted automatically — no manual curation
 src/
   engine/                # PURE & ISOMORPHIC — no React, no DOM
     rng.ts               #   xmur3 → mulberry32 (frozen seedv1)

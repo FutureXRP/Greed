@@ -10,6 +10,7 @@ import { setupLevel } from '../src/gauntlet/run';
 import { DIFFICULTIES } from '../src/gauntlet/difficulty';
 
 import { EXTRA_WORDS, BLOCKED_WORDS } from '../src/engine/customWords';
+import { classifyWord } from '../src/engine/coinage';
 
 const dict = buildDictionary(
   fs.readFileSync(path.join(__dirname, '..', 'assets', 'words37.txt'), 'utf8'),
@@ -88,7 +89,7 @@ describe('dictionary breadth & proper-noun exclusion', () => {
   });
 
   test('custom allowlist and blocklist apply', () => {
-    // EXTRA_WORDS is layered in (e.g. HELICO).
+    // EXTRA_WORDS is layered in (empty by default — the Coinage Engine covers liberty).
     for (const w of EXTRA_WORDS) {
       if (w.length >= 3 && w.length <= 7) expect(dict.has(w.toUpperCase())).toBe(true);
     }
@@ -96,6 +97,15 @@ describe('dictionary breadth & proper-noun exclusion', () => {
     const blocked = buildDictionary('CAT\nDOG\nQUITS', { blocked: ['DOG'] });
     expect(blocked.has('CAT')).toBe(true);
     expect(blocked.has('DOG')).toBe(false);
+  });
+
+  test('coinage engine grants liberty against the full dictionary', () => {
+    // HELICO is accepted by rule (combining form) — no hand-curated list needed.
+    expect(classifyWord('HELICO', dict)).toBe('coinage');
+    // Proper names stay out even through the coinage path.
+    for (const w of ['LONDON', 'EVEREST', 'SAHARA', 'DENALI', 'EINSTEIN', 'ROLEX']) {
+      expect(classifyWord(w, dict)).toBeNull();
+    }
   });
 });
 
