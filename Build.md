@@ -240,7 +240,7 @@ The daily percentile only means something if scores are honest. Pragmatic tierin
 | Seed string | `GREED-YYYY-M-D` (unpadded) + `#attempt` |
 | RNG | xmur3 → mulberry32 |
 | Epoch (Day 1) | 2026-07-01 |
-| Dictionary | ENABLE, 3–7 letters, uppercase (51,852 words — exact file in repo) |
+| Dictionary | YAWL ∪ ENABLE, 3–7 letters, uppercase (~72,028 words, curated — no proper names of people/places/landmarks; custom allow/block overrides in `src/engine/customWords.ts`) |
 
 Gauntlet/Endless constants (targets, shop prices, modifier weights) are **not** frozen — they live in a single `config/tuning.ts` and should be trivially adjustable.
 

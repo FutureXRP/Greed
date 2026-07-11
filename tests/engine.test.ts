@@ -292,7 +292,7 @@ function FULL() {
   if (_full) return _full;
   const fs = require('fs');
   const path = require('path');
-  const raw = fs.readFileSync(path.join(__dirname, '..', 'assets', 'enable37.txt'), 'utf8');
+  const raw = fs.readFileSync(path.join(__dirname, '..', 'assets', 'words37.txt'), 'utf8');
   _full = buildDictionary(raw);
   return _full;
 }
