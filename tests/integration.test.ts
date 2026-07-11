@@ -7,6 +7,7 @@ import { bestWord } from '../src/engine/solver';
 import { buildReport } from '../src/game/report';
 import { dailyShareText } from '../src/game/share';
 import { setupLevel } from '../src/gauntlet/run';
+import { DIFFICULTIES } from '../src/gauntlet/difficulty';
 
 const dict = buildDictionary(
   fs.readFileSync(path.join(__dirname, '..', 'assets', 'enable37.txt'), 'utf8'),
@@ -62,24 +63,31 @@ describe('full daily integration (real seed)', () => {
 
 describe('gauntlet level setup (real run seed)', () => {
   const runSeed = 'RUN-gauntlet-fixed-seed';
+  const medium = DIFFICULTIES.medium;
 
-  test('early level has no modifier and a 30-ish target', () => {
-    const l1 = setupLevel({ mode: 'gauntlet', level: 1, runSeed, dict, prevBrutal: false, eighthSlot: false });
+  test('level 1 has no modifier and the medium base target', () => {
+    const l1 = setupLevel({ mode: 'gauntlet', level: 1, runSeed, dict, difficulty: medium, prevBrutal: false, eighthSlot: false });
     expect(l1.modifier).toBeNull();
-    expect(l1.target).toBe(30);
+    expect(l1.target).toBe(22);
     expect(l1.stream.length).toBe(16);
   });
 
   test('level 5 draws a modifier and is deterministic', () => {
-    const a = setupLevel({ mode: 'gauntlet', level: 5, runSeed, dict, prevBrutal: false, eighthSlot: false });
-    const b = setupLevel({ mode: 'gauntlet', level: 5, runSeed, dict, prevBrutal: false, eighthSlot: false });
+    const a = setupLevel({ mode: 'gauntlet', level: 5, runSeed, dict, difficulty: medium, prevBrutal: false, eighthSlot: false });
+    const b = setupLevel({ mode: 'gauntlet', level: 5, runSeed, dict, difficulty: medium, prevBrutal: false, eighthSlot: false });
     expect(a.modifier?.id).toBe(b.modifier?.id);
     expect(a.stream).toEqual(b.stream);
     expect(a.target).toBeGreaterThan(0);
   });
 
+  test('hard tier targets exceed easy tier at the same level', () => {
+    const easy = setupLevel({ mode: 'gauntlet', level: 8, runSeed, dict, difficulty: DIFFICULTIES.easy, prevBrutal: false, eighthSlot: false });
+    const hard = setupLevel({ mode: 'gauntlet', level: 8, runSeed, dict, difficulty: DIFFICULTIES.hard, prevBrutal: false, eighthSlot: false });
+    expect(hard.target).toBeGreaterThan(easy.target);
+  });
+
   test('eighth slot enlarges the rack', () => {
-    const l = setupLevel({ mode: 'gauntlet', level: 2, runSeed, dict, prevBrutal: false, eighthSlot: true });
+    const l = setupLevel({ mode: 'gauntlet', level: 2, runSeed, dict, difficulty: medium, prevBrutal: false, eighthSlot: true });
     expect(l.config.rackSize).toBe(8);
   });
 });

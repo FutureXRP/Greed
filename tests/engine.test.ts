@@ -7,7 +7,8 @@ import { generateStream, dailySeedString, dayNumber, DAILY_GEN } from '../src/en
 import { initGame, keep, pass, currentLetter, decisionsString } from '../src/engine/gameMachine';
 import { fatesToGrid, dailyShareText } from '../src/game/share';
 import { chooseEpitaph } from '../src/game/epitaphs';
-import { gauntletTarget, endlessTarget, coinFromSurplus } from '../src/gauntlet/targets';
+import { baseTarget, levelTarget, coinFromSurplus } from '../src/gauntlet/targets';
+import { DIFFICULTIES } from '../src/gauntlet/difficulty';
 
 // A small dictionary is enough for most engine tests.
 const MINI = buildDictionary(
@@ -249,29 +250,39 @@ describe('epitaphs', () => {
 });
 
 describe('gauntlet targets', () => {
-  test('gauntlet curve matches spec', () => {
-    expect(gauntletTarget(1)).toBe(30);
-    expect(gauntletTarget(2)).toBe(37);
-    expect(gauntletTarget(3)).toBe(45);
-    expect(gauntletTarget(4)).toBe(54);
-    expect(gauntletTarget(5)).toBe(66);
-    expect(gauntletTarget(6)).toBe(81);
-    expect(gauntletTarget(7)).toBe(99);
-    // Formula round(30×1.22^7)=121; the spec's illustrative list says 120
-    // (inconsistent hand-rounding). The formula is the frozen source of truth.
-    expect(gauntletTarget(8)).toBe(121);
+  test('curve is gentle and monotonic to 100 levels', () => {
+    // base + step·(n−1)^exp — sub-exponential so deep runs stay reachable.
+    expect(baseTarget(1)).toBe(22);
+    for (let n = 2; n <= 100; n++) {
+      expect(baseTarget(n)).toBeGreaterThan(baseTarget(n - 1));
+    }
+    // Far gentler than the old 30×1.22^(n−1): ~180 at L50, not tens of thousands.
+    expect(baseTarget(50)).toBeGreaterThan(120);
+    expect(baseTarget(50)).toBeLessThan(240);
+    expect(baseTarget(100)).toBeLessThan(500);
   });
 
-  test('endless flattens after level 20', () => {
-    const t20 = endlessTarget(20);
-    expect(endlessTarget(21)).toBe(t20 + 40);
-    expect(endlessTarget(22)).toBe(t20 + 80);
+  test('difficulty tiers scale the target', () => {
+    const easy = levelTarget(10, DIFFICULTIES.easy);
+    const medium = levelTarget(10, DIFFICULTIES.medium);
+    const hard = levelTarget(10, DIFFICULTIES.hard);
+    expect(easy).toBeLessThan(medium);
+    expect(medium).toBeLessThan(hard);
+    expect(levelTarget(1, DIFFICULTIES.medium)).toBe(22);
   });
 
-  test('coin from surplus', () => {
-    expect(coinFromSurplus(50, 30)).toBe(4); // floor(20/5)
-    expect(coinFromSurplus(30, 30)).toBe(0);
-    expect(coinFromSurplus(20, 30)).toBe(0);
+  test('difficulty tiers configure busts, coin, and modifier start', () => {
+    expect(DIFFICULTIES.easy.maxBusts).toBeGreaterThan(DIFFICULTIES.hard.maxBusts);
+    expect(DIFFICULTIES.easy.startCoin).toBeGreaterThan(DIFFICULTIES.hard.startCoin);
+    expect(DIFFICULTIES.easy.startItems.peek).toBe(1);
+    expect(DIFFICULTIES.hard.modifierStartLevel).toBeLessThan(DIFFICULTIES.easy.modifierStartLevel);
+  });
+
+  test('coin from surplus uses the given rate', () => {
+    expect(coinFromSurplus(50, 30, 4)).toBe(5); // floor(20/4)
+    expect(coinFromSurplus(50, 30, 3)).toBe(6); // easy converts faster
+    expect(coinFromSurplus(30, 30, 4)).toBe(0);
+    expect(coinFromSurplus(20, 30, 4)).toBe(0);
   });
 });
 

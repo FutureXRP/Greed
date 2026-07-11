@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Screen } from '../components/Screen';
 import { Button, Card, Mono, UIText } from '../components/ui';
@@ -11,12 +11,12 @@ import { buildReport } from '../game/report';
 import { runShareText } from '../game/share';
 import { shareText } from '../game/shareActions';
 import { setupLevel, makeRandomTail, LevelSetup, RunMode } from '../gauntlet/run';
-import { coinFromSurplus } from '../gauntlet/targets';
-import { rollShop, ShopItem, emptyInventory, Inventory, ShopItemId } from '../gauntlet/shop';
-import { TUNING } from '../config/tuning';
+import { coinFromSurplus, levelTarget } from '../gauntlet/targets';
+import { rollShop, ShopItem, makeInventory, Inventory, ShopItemId } from '../gauntlet/shop';
+import { DIFFICULTIES, DIFFICULTY_ORDER, DifficultyConfig } from '../gauntlet/difficulty';
 import { saveRun } from '../storage';
 
-type Stage = 'intro' | 'hand' | 'result' | 'shop' | 'over';
+type Stage = 'difficulty' | 'intro' | 'hand' | 'result' | 'shop' | 'over';
 
 interface HandOutcome {
   reportWord: string | null;
@@ -45,12 +45,13 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
     [mode],
   );
 
-  const [stage, setStage] = useState<Stage>('intro');
+  const [stage, setStage] = useState<Stage>('difficulty');
+  const [difficulty, setDifficulty] = useState<DifficultyConfig | null>(null);
   const [level, setLevel] = useState(1);
   const [busts, setBusts] = useState(0);
   const [coin, setCoin] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
-  const [inv, setInv] = useState<Inventory>(emptyInventory);
+  const [inv, setInv] = useState<Inventory>(makeInventory);
   const [prevBrutal, setPrevBrutal] = useState(false);
   const [runBest, setRunBest] = useState<{ word: string | null; score: number }>({ word: null, score: 0 });
 
@@ -63,14 +64,25 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
   const [shop, setShop] = useState<ShopItem[]>([]);
   const [bought, setBought] = useState<Set<number>>(new Set());
 
-  // Build the first level on mount.
-  useEffect(() => {
-    setSetup(setupLevel({ mode, level: 1, runSeed, dict, prevBrutal: false, eighthSlot: false }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Start the run once a difficulty is chosen.
+  function chooseDifficulty(d: DifficultyConfig) {
+    setDifficulty(d);
+    setCoin(d.startCoin);
+    setInv(makeInventory(d.startItems));
+    setBusts(0);
+    setLevel(1);
+    setTotalScore(0);
+    setPrevBrutal(false);
+    setRunBest({ word: null, score: 0 });
+    setSetup(setupLevel({ mode, level: 1, runSeed, dict, difficulty: d, prevBrutal: false, eighthSlot: false }));
+    setArmed({ peek: false, eighth: false, burn: false, die: false, marked: null });
+    setDoubleDown(false);
+    setStage('intro');
+  }
 
   function beginLevel(nextLevel: number) {
-    setSetup(setupLevel({ mode, level: nextLevel, runSeed, dict, prevBrutal, eighthSlot: false }));
+    if (!difficulty) return;
+    setSetup(setupLevel({ mode, level: nextLevel, runSeed, dict, difficulty, prevBrutal, eighthSlot: false }));
     setArmed({ peek: false, eighth: false, burn: false, die: false, marked: null });
     setDoubleDown(false);
     setLevel(nextLevel);
@@ -96,7 +108,8 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
     const cursedPenalty = cursedKept ? 15 : 0;
     const finalScore = Math.max(0, report.score - cursedPenalty);
     const hit = finalScore >= effectiveTarget;
-    const coinGained = hit ? coinFromSurplus(finalScore, effectiveTarget) * (doubleDown ? 2 : 1) : 0;
+    const perSurplus = difficulty?.coinPerSurplus ?? 4;
+    const coinGained = hit ? coinFromSurplus(finalScore, effectiveTarget, perSurplus) * (doubleDown ? 2 : 1) : 0;
 
     setTotalScore((t) => t + finalScore);
     if (report.word && report.score > runBest.score) setRunBest({ word: report.word, score: report.score });
@@ -136,7 +149,8 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
   }
 
   function afterResult() {
-    if (busts >= TUNING.gauntlet.maxBusts) {
+    const maxBusts = difficulty?.maxBusts ?? 3;
+    if (busts >= maxBusts) {
       saveRun({
         mode,
         levelReached: level,
@@ -161,13 +175,45 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
   }
 
   const title = mode === 'endless' ? 'ENDLESS' : 'THE GAUNTLET';
+  const maxBusts = difficulty?.maxBusts ?? 3;
+
+  // ---- Difficulty select (first stage) ----
+  if (stage === 'difficulty' || !difficulty) {
+    return (
+      <Screen title={title} subtitle="Choose your tier" onBack={back}>
+        <UIText style={styles.dim}>
+          {mode === 'endless' ? 'No ceiling — how hard should the climb be?' : 'Runs scale to 100 levels. Pick your poison.'}
+        </UIText>
+        {DIFFICULTY_ORDER.map((id) => {
+          const d = DIFFICULTIES[id];
+          return (
+            <Card key={id} style={styles.diffCard}>
+              <View style={styles.diffTop}>
+                <UIText style={styles.diffName}>{d.name}</UIText>
+                <Mono style={styles.diffTargets}>
+                  L1 {levelTarget(1, d)} · L25 {levelTarget(25, d)} · L50 {levelTarget(50, d)}
+                </Mono>
+              </View>
+              <UIText style={styles.diffBlurb}>{d.blurb}</UIText>
+              <View style={styles.diffMeta}>
+                <UIText style={styles.diffMetaText}>{d.maxBusts} busts</UIText>
+                <UIText style={styles.diffMetaText}>{d.startCoin}◈ to start</UIText>
+                <UIText style={styles.diffMetaText}>rules from L{d.modifierStartLevel}</UIText>
+              </View>
+              <Button label={`PLAY ${d.name.toUpperCase()}`} variant="gold" small onPress={() => chooseDifficulty(d)} style={styles.diffBtn} />
+            </Card>
+          );
+        })}
+      </Screen>
+    );
+  }
 
   // ---- Render per stage ----
   const statusBar = (
     <View style={styles.status}>
       <StatusPill label="LEVEL" value={`${level}`} />
       <StatusPill label="COIN" value={`${coin}`} gold />
-      <StatusPill label="BUSTS" value={`${busts}/${TUNING.gauntlet.maxBusts}`} danger={busts > 0} />
+      <StatusPill label="BUSTS" value={`${busts}/${maxBusts}`} danger={busts > 0} />
       <StatusPill label="TOTAL" value={`${totalScore}`} />
     </View>
   );
@@ -176,7 +222,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
 
   if (stage === 'intro') {
     return (
-      <Screen title={title} subtitle={`Level ${level}`} onBack={back}>
+      <Screen title={title} subtitle={`${difficulty.name} · Level ${level}`} onBack={back}>
         {statusBar}
         <Card style={styles.targetCard}>
           <UIText style={styles.targetLabel}>TARGET</UIText>
@@ -277,7 +323,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
           }
         />
         <Button
-          label={busts >= TUNING.gauntlet.maxBusts ? 'THE HOUSE COLLECTS' : outcome.hit ? 'TO THE VAULT' : 'PRESS ON'}
+          label={busts >= maxBusts ? 'THE HOUSE COLLECTS' : outcome.hit ? 'TO THE VAULT' : 'PRESS ON'}
           variant="gold"
           onPress={afterResult}
         />
@@ -411,6 +457,14 @@ function MarkPicker({ value, onPick }: { value: string; onPick: (l: string) => v
 }
 
 const styles = StyleSheet.create({
+  diffCard: { gap: SPACE.sm, borderColor: COLORS.goldDim },
+  diffTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 4 },
+  diffName: { color: COLORS.gold, fontFamily: FONTS.display, fontWeight: '900', fontSize: 20, letterSpacing: 1 },
+  diffTargets: { color: COLORS.muted, fontSize: 11 },
+  diffBlurb: { color: COLORS.bone, fontSize: 13, lineHeight: 18 },
+  diffMeta: { flexDirection: 'row', gap: SPACE.sm, flexWrap: 'wrap' },
+  diffMetaText: { color: COLORS.muted, fontSize: 11, letterSpacing: 0.5 },
+  diffBtn: { alignSelf: 'flex-start', marginTop: SPACE.xs },
   status: { flexDirection: 'row', gap: SPACE.sm, justifyContent: 'space-between' },
   pill: { flex: 1, alignItems: 'center', backgroundColor: COLORS.felt, borderRadius: 10, borderWidth: 1, borderColor: COLORS.line, paddingVertical: SPACE.sm },
   pillValue: { color: COLORS.bone, fontSize: 16, fontWeight: '700' },
