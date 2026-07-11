@@ -8,9 +8,10 @@ import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import { buildDictionary, Dictionary } from './dictionary';
+import { EXTRA_WORDS, BLOCKED_WORDS } from './customWords';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const DICT_MODULE = require('../../assets/enable37.txt');
+const DICT_MODULE = require('../../assets/words37.txt');
 
 let cached: Dictionary | null = null;
 
@@ -30,7 +31,7 @@ async function readAssetText(): Promise<string> {
 export async function loadDictionary(): Promise<Dictionary> {
   if (cached) return cached;
   const raw = await readAssetText();
-  cached = buildDictionary(raw);
+  cached = buildDictionary(raw, { extra: EXTRA_WORDS, blocked: BLOCKED_WORDS });
   return cached;
 }
 

@@ -9,8 +9,11 @@ import { dailyShareText } from '../src/game/share';
 import { setupLevel } from '../src/gauntlet/run';
 import { DIFFICULTIES } from '../src/gauntlet/difficulty';
 
+import { EXTRA_WORDS, BLOCKED_WORDS } from '../src/engine/customWords';
+
 const dict = buildDictionary(
-  fs.readFileSync(path.join(__dirname, '..', 'assets', 'enable37.txt'), 'utf8'),
+  fs.readFileSync(path.join(__dirname, '..', 'assets', 'words37.txt'), 'utf8'),
+  { extra: EXTRA_WORDS, blocked: BLOCKED_WORDS },
 );
 
 describe('full daily integration (real seed)', () => {
@@ -58,6 +61,41 @@ describe('full daily integration (real seed)', () => {
     expect(report.score).toBe(0);
     expect(report.word).toBeNull();
     expect(report.epitaph.length).toBeGreaterThan(0);
+  });
+});
+
+describe('dictionary breadth & proper-noun exclusion', () => {
+  test('the list is substantially larger than ENABLE', () => {
+    expect(dict.size).toBeGreaterThan(70000);
+  });
+
+  test('creative / obscure words are accepted', () => {
+    for (const w of ['QAT', 'ZHO', 'WAQF', 'PHAT', 'GROK', 'OBI', 'JIB', 'ZAX', 'YOD']) {
+      expect(dict.has(w)).toBe(true);
+    }
+  });
+
+  test('legitimate homographs of proper nouns are kept', () => {
+    for (const w of ['CHINA', 'TURKEY', 'JERSEY', 'FRANK', 'TESLA', 'PARIS']) {
+      expect(dict.has(w)).toBe(true);
+    }
+  });
+
+  test('pure proper names of people / places / landmarks are rejected', () => {
+    for (const w of ['LONDON', 'EVEREST', 'SAHARA', 'DENALI', 'EINSTEIN', 'ROLEX']) {
+      expect(dict.has(w)).toBe(false);
+    }
+  });
+
+  test('custom allowlist and blocklist apply', () => {
+    // EXTRA_WORDS is layered in (e.g. HELICO).
+    for (const w of EXTRA_WORDS) {
+      if (w.length >= 3 && w.length <= 7) expect(dict.has(w.toUpperCase())).toBe(true);
+    }
+    // A blocked word is removed even though it exists in the base list.
+    const blocked = buildDictionary('CAT\nDOG\nQUITS', { blocked: ['DOG'] });
+    expect(blocked.has('CAT')).toBe(true);
+    expect(blocked.has('DOG')).toBe(false);
   });
 });
 

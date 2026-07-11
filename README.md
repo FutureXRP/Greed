@@ -77,7 +77,7 @@ to validate submissions, so wiring the backend later is additive.
 ```
 index.ts                 # Expo entry (registerRootComponent)
 App.tsx                  # dictionary-load gate, nav stack, providers
-assets/enable37.txt      # ENABLE dictionary, 3–7 letters (51,852 words)
+assets/words37.txt       # YAWL ∪ ENABLE, 3–7 letters (~72k words, no proper nouns)
 src/
   engine/                # PURE & ISOMORPHIC — no React, no DOM
     rng.ts               #   xmur3 → mulberry32 (frozen seedv1)
