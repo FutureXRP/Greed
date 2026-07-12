@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "greed",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#141210",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FBF3E2",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#141210"
+      "backgroundColor": "#FBF3E2"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -25,7 +25,7 @@
       "package": "com.passagelab.greed",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#141210"
+        "backgroundColor": "#FBF3E2"
       }
     },
     "web": {

@@ -39,10 +39,11 @@ interface HandOutcome {
 const MARK_LETTERS = ['S', 'E', 'A', 'R', 'T', 'N', 'O', 'L', 'D', 'J', 'Q', 'X', 'Z', 'K'];
 
 export function GauntletScreen({ mode }: { mode: RunMode }) {
-  const { dict, settings, back } = useApp();
+  const { dict, settings } = useApp();
+  const [seedNonce, setSeedNonce] = useState(0);
   const runSeed = useMemo(
     () => `RUN-${mode}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
-    [mode],
+    [mode, seedNonce],
   );
 
   const [stage, setStage] = useState<Stage>('difficulty');
@@ -180,7 +181,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
   // ---- Difficulty select (first stage) ----
   if (stage === 'difficulty' || !difficulty) {
     return (
-      <Screen title={title} subtitle="Choose your tier" onBack={back}>
+      <Screen title={title} subtitle="Choose your tier">
         <UIText style={styles.dim}>
           {mode === 'endless' ? 'No ceiling — how hard should the climb be?' : 'Runs scale to 100 levels. Pick your poison.'}
         </UIText>
@@ -218,11 +219,11 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
     </View>
   );
 
-  if (!setup) return <Screen title={title} onBack={back}><UIText style={styles.dim}>Loading…</UIText></Screen>;
+  if (!setup) return <Screen title={title}><UIText style={styles.dim}>Loading…</UIText></Screen>;
 
   if (stage === 'intro') {
     return (
-      <Screen title={title} subtitle={`${difficulty.name} · Level ${level}`} onBack={back}>
+      <Screen title={title} subtitle={`${difficulty.name} · Level ${level}`}>
         {statusBar}
         <Card style={styles.targetCard}>
           <UIText style={styles.targetLabel}>TARGET</UIText>
@@ -261,7 +262,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
   if (stage === 'hand') {
     const config = { ...setup.config, rackSize: armed.eighth ? 8 : setup.config.rackSize };
     return (
-      <Screen title={title} subtitle={`Level ${level} · target ${effectiveTarget}`} onBack={back}>
+      <Screen title={title} subtitle={`Level ${level} · target ${effectiveTarget}`}>
         {statusBar}
         <LevelHand
           key={`${level}-${armed.eighth}`}
@@ -290,7 +291,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
 
   if (stage === 'result' && outcome) {
     return (
-      <Screen title={title} subtitle={`Level ${level}`} onBack={back}>
+      <Screen title={title} subtitle={`Level ${level}`}>
         <ReportView
           result={{
             word: outcome.reportWord,
@@ -333,7 +334,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
 
   if (stage === 'shop') {
     return (
-      <Screen title="THE VAULT" subtitle={`${coin} coin`} onBack={back}>
+      <Screen title="THE VAULT" subtitle={`${coin} coin`}>
         {statusBar}
         <UIText style={styles.dim}>Buy what you can carry. Coin resets when the run ends.</UIText>
         {shop.map((item, i) => (
@@ -358,7 +359,7 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
 
   // Game over — run report
   return (
-    <Screen title={title} subtitle="The house collects." onBack={back}>
+    <Screen title={title} subtitle="The house collects.">
       <View style={styles.overHero}>
         <Mono style={styles.overLevel}>LEVEL {level}</Mono>
         <UIText style={styles.overSub}>{mode === 'endless' ? 'deepest reached' : 'run ended'}</UIText>
@@ -390,7 +391,15 @@ export function GauntletScreen({ mode }: { mode: RunMode }) {
           )
         }
       />
-      <Button label="HOME" variant="ghost" onPress={back} />
+      <Button
+        label="NEW RUN"
+        variant="ghost"
+        onPress={() => {
+          setSeedNonce((n) => n + 1);
+          setDifficulty(null);
+          setStage('difficulty');
+        }}
+      />
     </Screen>
   );
 }
@@ -448,7 +457,7 @@ function MarkPicker({ value, onPick }: { value: string; onPick: (l: string) => v
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.markRow}>
         {MARK_LETTERS.map((l) => (
           <Pressable key={l} onPress={() => onPick(l)} style={[styles.markChip, value === l && styles.markChipOn]}>
-            <Mono style={[styles.markText, value === l && { color: COLORS.ink }]}>{l}</Mono>
+            <Mono style={[styles.markText, value === l && { color: '#FFFFFF' }]}>{l}</Mono>
           </Pressable>
         ))}
       </ScrollView>
@@ -482,7 +491,7 @@ const styles = StyleSheet.create({
   invChip: { paddingVertical: 6, paddingHorizontal: SPACE.sm, borderRadius: 999, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.felt },
   invChipOn: { backgroundColor: COLORS.gold, borderColor: COLORS.goldHi },
   invChipText: { color: COLORS.bone, fontSize: 12 },
-  invChipTextOn: { color: COLORS.ink, fontWeight: '700' },
+  invChipTextOn: { color: '#FFFFFF', fontWeight: '700' },
   markRow: { gap: SPACE.xs, paddingVertical: 2 },
   markChip: { width: 34, height: 34, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.felt },
   markChipOn: { backgroundColor: COLORS.gold, borderColor: COLORS.goldHi },
@@ -501,6 +510,6 @@ const styles = StyleSheet.create({
   overHero: { alignItems: 'center', marginVertical: SPACE.md },
   overLevel: { color: COLORS.gold, fontSize: 40, fontWeight: '700', letterSpacing: 2 },
   overSub: { color: COLORS.muted, letterSpacing: 2, fontSize: 12 },
-  epitaphCard: { backgroundColor: COLORS.ink, borderColor: COLORS.goldDim },
+  epitaphCard: { backgroundColor: COLORS.feltHi, borderColor: COLORS.line },
   overEpitaph: { fontFamily: FONTS.display, fontStyle: 'italic', color: COLORS.bone, fontSize: 16, textAlign: 'center', lineHeight: 23 },
 });

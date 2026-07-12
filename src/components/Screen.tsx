@@ -39,8 +39,8 @@ export function Screen({
     ) : null;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.ink} />
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.ink} />
       {header}
       {scroll ? (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

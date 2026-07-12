@@ -2,14 +2,8 @@ import React, { createContext, useContext } from 'react';
 import { Dictionary } from './engine/dictionary';
 import { Settings } from './storage';
 
-export type Route =
-  | { name: 'home' }
-  | { name: 'daily' }
-  | { name: 'gauntlet' }
-  | { name: 'endless' }
-  | { name: 'stats' }
-  | { name: 'settings' }
-  | { name: 'how' };
+/** Sub-routes pushed above a tab root (tabs themselves live in App state). */
+export type Route = { name: 'settings' } | { name: 'how' };
 
 export interface AppContextValue {
   dict: Dictionary;
@@ -17,6 +11,8 @@ export interface AppContextValue {
   setSettings: (s: Settings) => void;
   navigate: (r: Route) => void;
   back: () => void;
+  /** True when a sub-route is pushed (tab roots have no back). */
+  canGoBack: boolean;
   today: Date;
   dayNum: number;
 }

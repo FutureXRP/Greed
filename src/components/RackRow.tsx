@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.line,
     borderStyle: 'dashed',
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
   },
 });

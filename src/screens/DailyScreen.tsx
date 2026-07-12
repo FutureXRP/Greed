@@ -24,7 +24,7 @@ import {
 } from '../storage';
 
 export function DailyScreen() {
-  const { dict, settings, back, today, dayNum } = useApp();
+  const { dict, settings, today, dayNum } = useApp();
   const seed = useMemo(() => dailySeedString(today), [today]);
   const gen = useMemo(() => generateStream(seed, dict, DAILY_GEN), [seed, dict]);
   const stream = gen.letters;
@@ -78,12 +78,12 @@ export function DailyScreen() {
     await shareText(text);
   }
 
-  if (loading) return <Screen title="THE DAILY" onBack={back}><Loading label="Shuffling the bag…" /></Screen>;
+  if (loading) return <Screen title="GREED"><Loading label="Shuffling the bag…" /></Screen>;
 
   // Report (either fresh or locked)
   if (result) {
     return (
-      <Screen title="THE DAILY" subtitle={`№ ${dayNum}`} onBack={back}>
+      <Screen title="GREED" subtitle={`The Daily · № ${dayNum}`}>
         <ReportView
           result={result}
           stream={stream}
@@ -102,14 +102,13 @@ export function DailyScreen() {
         ) : null}
         {locked ? <UIText style={styles.lockedLine}>You’ve played today. Come back tomorrow.</UIText> : null}
         <Button label="SHARE" variant="gold" onPress={onShare} />
-        <Button label="HOME" variant="ghost" onPress={back} />
       </Screen>
     );
   }
 
   // Draft / Spell
   return (
-    <Screen title="THE DAILY" subtitle={`№ ${dayNum}`} onBack={back}>
+    <Screen title="GREED" subtitle={`The Daily · № ${dayNum}`}>
       {hand.state.phase === 'draft' ? (
         <DraftView
           state={hand.state}

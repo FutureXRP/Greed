@@ -51,11 +51,11 @@ export function Tile({ letter, size = 48, tone = 'gold', hideValue, struck, styl
 }
 
 const TONES: Record<TileTone, { bg: string; border: string; fg: string }> = {
-  gold: { bg: COLORS.gold, border: COLORS.goldHi, fg: COLORS.ink },
-  forced: { bg: COLORS.loss, border: COLORS.lossHi, fg: COLORS.bone },
-  cursed: { bg: '#3a1a12', border: COLORS.loss, fg: COLORS.lossHi },
+  gold: { bg: '#FFC94D', border: COLORS.gold, fg: '#5A4014' },
+  forced: { bg: COLORS.loss, border: COLORS.lossHi, fg: '#FFFFFF' },
+  cursed: { bg: '#FBE3DC', border: COLORS.loss, fg: COLORS.lossHi },
   ghost: { bg: 'transparent', border: COLORS.line, fg: COLORS.muted },
-  flat: { bg: COLORS.feltHi, border: COLORS.line, fg: COLORS.bone },
+  flat: { bg: COLORS.feltHi, border: COLORS.line, fg: '#8A7A5C' },
 };
 
 const styles = StyleSheet.create({
