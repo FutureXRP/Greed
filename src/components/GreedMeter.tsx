@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   pct: { color: COLORS.goldHi, fontSize: 18, fontWeight: '700' },
   track: {
     height: 14,
-    backgroundColor: COLORS.ink,
+    backgroundColor: COLORS.feltHi,
     borderRadius: RADIUS.pill,
     borderWidth: 1,
     borderColor: COLORS.line,

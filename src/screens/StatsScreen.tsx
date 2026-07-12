@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Screen } from '../components/Screen';
-import { Card, Mono, UIText } from '../components/ui';
+import { Button, Card, Mono, UIText } from '../components/ui';
 import { COLORS, SPACE } from '../theme';
 import { useApp } from '../AppContext';
 import {
@@ -14,7 +14,7 @@ import {
 } from '../storage';
 
 export function StatsScreen() {
-  const { back } = useApp();
+  const { navigate } = useApp();
   const [streak, setStreak] = useState<StreakState | null>(null);
   const [dailies, setDailies] = useState<StoredDaily[]>([]);
   const [runs, setRuns] = useState<Record<string, StoredRun>>({});
@@ -39,7 +39,7 @@ export function StatsScreen() {
       : 0;
 
   return (
-    <Screen title="STATS" onBack={back}>
+    <Screen title="PROFILE">
       <View style={styles.grid}>
         <Stat label="CURRENT STREAK" value={`${streak?.current ?? 0}`} />
         <Stat label="MAX STREAK" value={`${streak?.max ?? 0}`} />
@@ -84,6 +84,9 @@ export function StatsScreen() {
         )}
         {folds > 0 ? <UIText style={styles.foldNote}>{folds} fold{folds === 1 ? '' : 's'} on record.</UIText> : null}
       </Card>
+
+      <Button label="SETTINGS" variant="primary" onPress={() => navigate({ name: 'settings' })} />
+      <Button label="HOW TO PLAY" variant="primary" onPress={() => navigate({ name: 'how' })} />
     </Screen>
   );
 }

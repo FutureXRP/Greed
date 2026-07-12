@@ -1,32 +1,41 @@
 /**
- * Design system — carried forward from the prototype aesthetic.
- * Loss red is reserved EXCLUSIVELY for punishment (forced/cursed tiles, busts).
+ * Design system — "Sunshine Day": warm cream table, white cards, amber gold,
+ * rounded cheerful type. Loss red remains reserved EXCLUSIVELY for punishment
+ * (forced/cursed tiles, busts).
+ *
+ * Token semantics (kept from the original dark theme so components re-skin
+ * automatically): ink = page background, felt = card surface, feltHi = soft
+ * fill, line = hairline borders, gold = primary accent fill, goldHi = accent
+ * text emphasis, bone = primary text, muted = secondary text.
  */
 
 import { Platform } from 'react-native';
 
 export const COLORS = {
-  ink: '#141210', // table
-  felt: '#1f1b15',
-  feltHi: '#2a251d',
-  line: '#3a3327',
-  gold: '#d9a441',
-  goldHi: '#f0c065',
-  goldDim: '#8a6b2d',
-  bone: '#ede4d3',
-  muted: '#8a7f6c',
-  loss: '#b8452f', // PUNISHMENT ONLY
-  lossHi: '#d65a42',
-  win: '#7fae5a',
+  ink: '#FBF3E2', // page background (warm cream)
+  felt: '#FFFFFF', // card surface
+  feltHi: '#FFF3D6', // soft amber fill
+  line: '#F0DFBD',
+  gold: '#F5A623', // primary amber (fills, buttons)
+  goldHi: '#E07B27', // amber emphasis text (deep enough for cream bg)
+  goldDim: '#C98A2E',
+  bone: '#4A3B2A', // primary text (warm brown)
+  muted: '#A0906F',
+  loss: '#E4573D', // PUNISHMENT ONLY
+  lossHi: '#C63E28',
+  win: '#4E9B57',
 } as const;
 
 /**
- * Fonts. The brand fonts (Fraunces / Archivo / IBM Plex Mono) require bundled
- * font files; until those ship we fall back to platform equivalents. The
- * `mono` family is used for all numbers/scores — banknote energy.
+ * Fonts. Rounded/cheerful display face where the platform has one; body stays
+ * on the system face, numbers on the platform mono for tabular alignment.
  */
 export const FONTS = {
-  display: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
+  display: Platform.select({
+    ios: 'Arial Rounded MT Bold',
+    android: 'sans-serif-medium',
+    default: 'sans-serif',
+  }),
   ui: Platform.select({ ios: 'System', android: 'sans-serif', default: 'System' }),
   mono: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
 } as const;
@@ -40,9 +49,18 @@ export const SPACE = {
 } as const;
 
 export const RADIUS = {
-  tile: 10,
-  card: 16,
+  tile: 12,
+  card: 20,
   pill: 999,
+} as const;
+
+/** Soft warm drop shadow for cards and the tab bar. */
+export const SHADOW = {
+  shadowColor: '#C89B4B',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.18,
+  shadowRadius: 8,
+  elevation: 3,
 } as const;
 
 /** Standard Scrabble letter values, for tile pips. */

@@ -9,7 +9,7 @@ import {
   ViewStyle,
   StyleProp,
 } from 'react-native';
-import { COLORS, FONTS, RADIUS, SPACE } from '../theme';
+import { COLORS, FONTS, RADIUS, SPACE, SHADOW } from '../theme';
 
 export function Mono(props: TextProps) {
   return <Text {...props} style={[styles.mono, props.style]} />;
@@ -53,8 +53,8 @@ export function Button({ label, onPress, variant = 'primary', disabled, style, s
 }
 
 const VARIANTS = {
-  primary: { bg: COLORS.feltHi, border: COLORS.line, fg: COLORS.bone },
-  gold: { bg: COLORS.gold, border: COLORS.goldHi, fg: COLORS.ink },
+  primary: { bg: COLORS.felt, border: COLORS.line, fg: COLORS.bone },
+  gold: { bg: COLORS.gold, border: '#E8930C', fg: '#FFFFFF' },
   ghost: { bg: 'transparent', border: COLORS.line, fg: COLORS.muted },
   danger: { bg: 'transparent', border: COLORS.loss, fg: COLORS.lossHi },
 } as const;
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.line,
     padding: SPACE.md,
+    ...SHADOW,
   },
   divider: { height: 1, backgroundColor: COLORS.line, marginVertical: SPACE.md },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACE.md },

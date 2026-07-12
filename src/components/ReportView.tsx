@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },
   legendText: { color: COLORS.muted, fontSize: 11 },
-  epitaphCard: { backgroundColor: COLORS.ink, borderColor: COLORS.goldDim },
+  epitaphCard: { backgroundColor: COLORS.feltHi, borderColor: COLORS.line },
   epitaph: {
     fontFamily: FONTS.display,
     color: COLORS.bone,

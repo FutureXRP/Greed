@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
   stepTitle: { color: COLORS.gold, fontSize: 16, fontWeight: '700', letterSpacing: 1 },
   stepNum: { color: COLORS.goldHi },
   stepBody: { color: COLORS.bone, fontSize: 14, lineHeight: 20 },
-  tip: { backgroundColor: COLORS.ink, borderColor: COLORS.goldDim },
+  tip: { backgroundColor: COLORS.feltHi, borderColor: COLORS.line },
   tipText: { color: COLORS.muted, fontSize: 13, lineHeight: 19 },
 });
